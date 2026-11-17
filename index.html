@@ -1,0 +1,267 @@
+<!DOCTYPE html>
+<html lang="zh-TW">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>高教深耕計畫 115H111-02 經費執行率摘要</title>
+<style>
+:root {
+  --fg: #1f1f1f; --muted: #6b6b6b; --bg: #ffffff; --panel: #fafaf8; --line: #e4e2dc;
+  --ok: #2e7d4f; --warn: #b26a00; --bad: #c62828; --red: #e60012;
+  --s1: #3b6fd8; --s2: #e08a2c; --grid: #ececea; --ref: #1f1f1f;
+}
+@media (prefers-color-scheme: dark) {
+  :root {
+    --fg: #ececec; --muted: #a3a3a3; --bg: #1c1c1c; --panel: #242424; --line: #3a3a3a;
+    --ok: #5cc28a; --warn: #f0a640; --bad: #ff6b6b; --red: #ff4d5a;
+    --s1: #6f9cf0; --s2: #f0a650; --grid: #333; --ref: #ececec;
+  }
+}
+* { box-sizing: border-box; }
+body { margin: 0; background: var(--bg); color: var(--fg); font-family: "Noto Sans TC", "PingFang TC", "Microsoft JhengHei", system-ui, sans-serif; }
+.wrap { max-width: 1080px; margin: 0 auto; padding: 32px 20px 48px; display: flex; flex-direction: column; gap: 36px; }
+h1 { font-family: "Noto Serif TC", "PMingLiU", serif; font-weight: 400; font-size: 1.9rem; margin: 0 0 4px; }
+.sub { color: var(--muted); font-size: .85rem; margin: 0 0 14px; }
+.take { line-height: 1.8; margin: 0; }
+.take b, .num { font-variant-numeric: tabular-nums; }
+.cards { display: grid; grid-template-columns: repeat(auto-fit, minmax(220px, 1fr)); gap: 14px; }
+.card { background: var(--panel); border: 1px solid var(--line); border-radius: 10px; padding: 18px; display: flex; flex-direction: column; gap: 6px; }
+.card h3 { margin: 0; font-size: .95rem; font-weight: 500; color: var(--muted); }
+.big { font-family: "Noto Serif TC", serif; font-size: 2.6rem; line-height: 1.1; font-variant-numeric: tabular-nums; }
+.meter { height: 6px; border-radius: 3px; background: var(--grid); position: relative; margin: 6px 0; }
+.meter i { display: block; height: 100%; border-radius: 3px; }
+.meter b { position: absolute; top: -4px; width: 2px; height: 14px; background: var(--ref); }
+.row { display: flex; justify-content: space-between; font-size: .85rem; color: var(--muted); }
+.row span:last-child { color: var(--fg); font-variant-numeric: tabular-nums; }
+h2 { font-size: 1.2rem; font-weight: 500; margin: 0 0 6px; }
+.note { color: var(--muted); font-size: .85rem; margin: 0 0 12px; }
+.toggle { display: inline-flex; border: 1px solid var(--line); border-radius: 8px; overflow: hidden; margin: 4px 0 10px; }
+.toggle button { font: inherit; font-size: .85rem; padding: 5px 14px; border: 0; background: transparent; color: var(--muted); cursor: pointer; }
+.toggle button[aria-pressed="true"] { background: var(--fg); color: var(--bg); }
+.legend { display: flex; flex-wrap: wrap; gap: 16px; font-size: .8rem; color: var(--muted); margin-bottom: 6px; }
+.legend i { display: inline-block; width: 12px; height: 12px; border-radius: 2px; vertical-align: -2px; margin-right: 4px; }
+.legend i.dot { border-radius: 50%; width: 9px; height: 9px; vertical-align: 0; }
+.legend i.ref { width: 2px; border-radius: 0; background: var(--ref); }
+.chart { position: relative; min-height: 220px; }
+.chart text { font-size: 12px; fill: var(--muted); font-family: inherit; }
+.chart text.lab { fill: var(--fg); font-size: 14px; }
+.chart text.val { fill: var(--fg); font-variant-numeric: tabular-nums; }
+.tip { position: absolute; pointer-events: none; background: var(--bg); border: 1px solid var(--line); box-shadow: 0 4px 14px rgba(0,0,0,.12); border-radius: 8px; padding: 8px 12px; font-size: .8rem; line-height: 1.6; white-space: nowrap; z-index: 2; }
+.tip .k { color: var(--muted); }
+.tbl-wrap { overflow-x: auto; }
+table { width: 100%; border-collapse: collapse; font-variant-numeric: tabular-nums; }
+th { text-align: left; font-weight: 500; color: var(--muted); font-size: .8rem; border-bottom: 1px solid var(--line); padding: 6px 8px; white-space: nowrap; background: var(--panel); }
+td { border-bottom: 1px solid var(--line); padding: 8px; white-space: nowrap; }
+th.n, td.n { text-align: right; }
+td.wt { white-space: normal; min-width: 10em; }
+.bad { color: var(--bad); }
+.red { color: var(--red); font-weight: 500; }
+.u0 td { background: color-mix(in srgb, #3b82f6 14%, transparent); }
+.u1 td { background: color-mix(in srgb, #22c55e 14%, transparent); }
+.u2 td { background: color-mix(in srgb, #a855f7 14%, transparent); }
+.u3 td { background: color-mix(in srgb, #f97316 14%, transparent); }
+details summary { cursor: pointer; color: var(--muted); font-size: .85rem; }
+details ul { font-size: .85rem; color: var(--muted); line-height: 1.8; padding-left: 1.2em; }
+</style>
+</head>
+<body>
+<div class="wrap">
+
+<header>
+  <h1>高教深耕計畫 115H111-02 經費執行率摘要</h1>
+  <p class="sub">教學精進與創新、專業課程精進化｜執行單位：教務處｜資料截至 <span id="asof"></span></p>
+  <p class="take" id="take"></p>
+</header>
+
+<section class="cards">
+  <div class="card" data-cat="整體"><h3>整體經費</h3></div>
+  <div class="card" data-cat="人事費"><h3>人事費</h3></div>
+  <div class="card" data-cat="業務費"><h3>業務費</h3></div>
+</section>
+
+<section id="units">
+  <h2>各單位執行率</h2>
+  <div class="toggle" role="group" aria-label="費用別">
+    <button type="button" data-cat="業務費" aria-pressed="true">業務費</button>
+    <button type="button" data-cat="人事費" aria-pressed="false">人事費</button>
+  </div>
+  <p class="note">長條為主計帳執行率，圓點為線上登帳執行率，直線為全年時間進度。滑過長條可看金額。</p>
+  <div class="legend"><span><i style="background:var(--s1)"></i>主計帳執行率</span><span><i class="dot" style="background:var(--s2)"></i>線上登帳執行率</span><span><i class="ref"></i>時間進度</span></div>
+  <div class="chart" id="chart"></div>
+  <div class="tbl-wrap" style="margin-top:14px">
+    <table>
+      <thead><tr><th>單位</th><th class="n">核定</th><th class="n">主計已執行</th><th class="n">主計執行率</th><th class="n">線上登帳執行率</th></tr></thead>
+      <tbody id="unit-rows"></tbody>
+    </table>
+  </div>
+</section>
+
+<section id="biz">
+  <h2>業務費各項次執行率</h2>
+  <p class="note">全部業務費項次，依單位排列。剩餘為負值表示超出核定金額。</p>
+  <div class="tbl-wrap">
+    <table>
+      <thead><tr><th>單位</th><th>項次</th><th>項目</th><th class="n">核定</th><th class="n">主計已執行</th><th class="n">執行率</th><th class="n">剩餘</th></tr></thead>
+      <tbody id="biz-rows"></tbody>
+    </table>
+  </div>
+</section>
+
+<details>
+  <summary>名詞說明與資料來源</summary>
+  <ul>
+    <li>執行率＝已執行金額 ÷ 學校核定金額。表格中執行率低於 60% 以紅字標示。</li>
+    <li>主計帳執行率：依主計室傳票（主計帳）認列的已執行金額，為正式執行率。</li>
+    <li>線上登帳執行率：各單位在線上登帳表自行登記的金額。人事費一、五、七、八沒有線上帳，所以不列入線上執行率的計算。</li>
+    <li>時間進度：資料截止日在全年中的比例，用來對照執行進度是否落後。</li>
+    <li>資料來源：<span id="srcnote"></span></li>
+  </ul>
+</details>
+
+</div>
+
+<script>
+// ===== 每次更新只要改這一段 =====
+const AS_OF = '2026-11-16';
+const SOURCE_NOTE = '核銷會計對帳總檔（115H111-02，1116 版，11/17 更新人事費一、七）的「總表」工作表。';
+const ITEMS = [{"項次": "人事費一", "費用別": "人事費", "單位": "教務長室", "項目": "勞動型兼任助理", "核定": 780000, "主計": 741795, "線上": null}, {"項次": "人事費二", "費用別": "人事費", "單位": "教務長室", "項目": "擴大輔系教學助理", "核定": 86959, "主計": 86959, "線上": 86959}, {"項次": "人事費三", "費用別": "人事費", "單位": "通識中心", "項目": "通識教學助理", "核定": 651280, "主計": 544208, "線上": 576728}, {"項次": "人事費四", "費用別": "人事費", "單位": "教發中心", "項目": "教發教學助理", "核定": 4154179, "主計": 3406813, "線上": 3327221}, {"項次": "人事費五", "費用別": "人事費", "單位": "通識中心", "項目": "通識專任教師鐘點費", "核定": 3152, "主計": 0, "線上": null}, {"項次": "人事費六", "費用別": "人事費", "單位": "教務長室", "項目": "擴大輔系兼任教師鐘點費", "核定": 2000000, "主計": 1793127, "線上": 1872051}, {"項次": "人事費七", "費用別": "人事費", "單位": "教務長室", "項目": "專任助理", "核定": 7250000, "主計": 5612465, "線上": null}, {"項次": "人事費八", "費用別": "人事費", "單位": "通識中心", "項目": "專任約聘教師", "核定": 2860434, "主計": 2312476, "線上": null}, {"項次": "人事費九", "費用別": "人事費", "單位": "課務組", "項目": "兼任教師鐘點費（國家語言）", "核定": 420000, "主計": 200991, "線上": 181591}, {"項次": "人事費十", "費用別": "人事費", "單位": "通識中心", "項目": "通識兼任教師鐘點費", "核定": 760887, "主計": 681938, "線上": 649418}, {"項次": "人事費十一", "費用別": "人事費", "單位": "通識中心", "項目": "兼任教師鐘點費（閩南語）", "核定": 170068, "主計": 73233, "線上": 85566}, {"項次": "業務費一", "費用別": "業務費", "單位": "教發中心", "項目": "研究獎助生學習津貼", "核定": 1030000, "主計": 893517, "線上": 689765}, {"項次": "業務費二-一", "費用別": "業務費", "單位": "課務組", "項目": "學分學程（含微學程）補助", "核定": 1500000, "主計": 450390, "線上": 543672}, {"項次": "業務費二-二", "費用別": "業務費", "單位": "通識中心", "項目": "通識教育業務費", "核定": 423080, "主計": 216823, "線上": 213645}, {"項次": "業務費二-三", "費用別": "業務費", "單位": "課務組", "項目": "創新與總整課程補助", "核定": 1110000, "主計": 719400, "線上": 551732}, {"項次": "業務費二-四", "費用別": "業務費", "單位": "教發中心", "項目": "教學助理培訓與評量", "核定": 200000, "主計": 148815, "線上": 148945}, {"項次": "業務費二-五", "費用別": "業務費", "單位": "課務組", "項目": "專業基礎整合業務費", "核定": 700000, "主計": 149354, "線上": 242565}, {"項次": "業務費二-六", "費用別": "業務費", "單位": "教務長室", "項目": "推動跨域學習", "核定": 444180, "主計": 17678, "線上": 2930}, {"項次": "業務費二-七", "費用別": "業務費", "單位": "教發中心", "項目": "臨時人力（觀課、課諮、數位推廣）", "核定": 950000, "主計": 447509, "線上": 344980}, {"項次": "業務費二-八", "費用別": "業務費", "單位": "課務組", "項目": "國家語言課程補助", "核定": 400000, "主計": 212355, "線上": 215355}, {"項次": "業務費二-九", "費用別": "業務費", "單位": "課務組", "項目": "教室修繕與設備汰換", "核定": 800000, "主計": 476770, "線上": 730853}, {"項次": "業務費二-十", "費用別": "業務費", "單位": "教發中心", "項目": "數位教學創新（MOOCs 等）", "核定": 1392740, "主計": 953565, "線上": 1361585}, {"項次": "業務費二-十一", "費用別": "業務費", "單位": "教發中心", "項目": "教師支持體系", "核定": 1040000, "主計": 568478, "線上": 950000}, {"項次": "業務費二-十二", "費用別": "業務費", "單位": "教發中心", "項目": "教師社群補助", "核定": 342000, "主計": 151519, "線上": 138127}];
+// ===============================
+
+const fmt = (v) => Math.round(v).toLocaleString('en-US');
+const pct = (v) => v.toFixed(1) + '%';
+const rate = (m, k) => Math.round(m / k * 1000) / 10;
+const rateClass = (v) => v > 100 ? 'bad' : v < 60 ? 'red' : '';
+const el = (tag, attrs = {}, text) => { const e = document.createElement(tag); for (const [k, v] of Object.entries(attrs)) e.setAttribute(k, v); if (text !== undefined) e.textContent = text; return e; };
+
+const asof = new Date(AS_OF + 'T00:00:00Z');
+const y = asof.getUTCFullYear();
+const timePct = ((asof - Date.UTC(y, 0, 1)) / 864e5 + 1) / ((Date.UTC(y + 1, 0, 1) - Date.UTC(y, 0, 1)) / 864e5) * 100;
+document.getElementById('asof').textContent = `${y - 1911} 年 ${asof.getUTCMonth() + 1} 月 ${asof.getUTCDate()} 日`;
+document.getElementById('srcnote').textContent = SOURCE_NOTE;
+
+function agg(rows) {
+  let k = 0, m = 0, ko = 0, o = 0;
+  for (const r of rows) { k += r.核定; m += r.主計; if (r.線上 !== null) { ko += r.核定; o += r.線上; } }
+  return { 核定: k, 主計: m, 剩餘: k - m, 執行率: rate(m, k), 線上執行率: ko ? rate(o, ko) : null };
+}
+const byCat = (c) => c === '整體' ? ITEMS : ITEMS.filter((r) => r.費用別 === c);
+const totals = Object.fromEntries(['整體', '人事費', '業務費'].map((c) => [c, agg(byCat(c))]));
+
+// summary sentence
+const bizRates = byCat('業務費').map((r) => r.主計 / r.核定 * 100);
+const take = document.getElementById('take');
+const parts = [
+  `截至 ${asof.getUTCMonth() + 1}/${asof.getUTCDate()}（全年時間進度 `, [Math.round(timePct) + '%'], '），業務費主計執行率為 ', [pct(totals['業務費'].執行率)],
+  '，有 ', [String(bizRates.filter((v) => v > 100).length)], ' 個業務費項次超支、', [String(bizRates.filter((v) => v < 50).length)],
+  ' 個執行率未達 50%，須在年底前加速核銷。整體（含人事費）主計執行率為 ', [pct(totals['整體'].執行率)], '，人事費為 ', [pct(totals['人事費'].執行率)], '。',
+];
+for (const p of parts) take.append(Array.isArray(p) ? el('b', {}, p[0]) : document.createTextNode(p));
+
+// cards
+document.querySelectorAll('.card').forEach((card) => {
+  const t = totals[card.dataset.cat];
+  card.append(el('div', { class: 'big' }, pct(t.執行率)));
+  const meter = el('div', { class: 'meter' });
+  const fill = el('i'); fill.style.width = Math.min(t.執行率, 100) + '%';
+  fill.style.background = t.執行率 >= timePct - 10 ? 'var(--ok)' : 'var(--warn)';
+  const ref = el('b', { 'aria-label': '時間進度' }); ref.style.left = `calc(${timePct}% - 1px)`;
+  meter.append(fill, ref); card.append(meter);
+  for (const [label, v] of [['核定金額', fmt(t.核定)], ['主計已執行', fmt(t.主計)], ['主計執行率', pct(t.執行率)]]) {
+    const row = el('div', { class: 'row' }); row.append(el('span', {}, label), el('span', {}, v)); card.append(row);
+  }
+});
+
+// units
+function unitRows(cat) {
+  const rows = byCat(cat);
+  const units = [...new Set(rows.map((r) => r.單位))];
+  return units.map((u) => ({ 單位: u, ...agg(rows.filter((r) => r.單位 === u)) })).sort((a, b) => b.核定 - a.核定);
+}
+let cat = '業務費';
+const NS = 'http://www.w3.org/2000/svg';
+const svgEl = (tag, attrs = {}) => { const e = document.createElementNS(NS, tag); for (const [k, v] of Object.entries(attrs)) e.setAttribute(k, v); return e; };
+
+function drawChart() {
+  const box = document.getElementById('chart');
+  box.replaceChildren();
+  const rows = unitRows(cat);
+  const W = Math.max(box.clientWidth, 280), rowH = 46, top = 22, bottom = 26, H = top + rows.length * rowH + bottom, barH = 18;
+  const svg = svgEl('svg', { width: '100%', height: H, viewBox: `0 0 ${W} ${H}`, role: 'img', 'aria-label': `各單位${cat}主計帳與線上登帳執行率長條圖，含全年時間進度參考線` });
+  box.append(svg);
+  const probe = svgEl('text', { class: 'lab' }); svg.append(probe);
+  let labW = 0; for (const r of rows) { probe.textContent = r.單位; labW = Math.max(labW, probe.getComputedTextLength()); }
+  probe.setAttribute('class', 'val'); probe.textContent = '100.0%'; const valW = probe.getComputedTextLength() || 44; probe.remove();
+  const left = labW + 14, right = valW + 14;
+  const maxV = Math.max(100, ...rows.map((r) => Math.max(r.執行率, r.線上執行率 ?? 0)));
+  const x = (v) => left + (W - right - left) * v / maxV;
+  const ticks = W < 420 ? [0, 50, 100] : [0, 25, 50, 75, 100];
+  for (const t of ticks) {
+    svg.append(svgEl('line', { x1: x(t), x2: x(t), y1: top - 6, y2: H - bottom, stroke: 'var(--grid)' }));
+    const tx = svgEl('text', { x: x(t), y: H - 8, 'text-anchor': 'middle' }); tx.textContent = t + '%'; svg.append(tx);
+  }
+  const tip = el('div', { class: 'tip' }); tip.hidden = true; box.append(tip);
+  rows.forEach((r, i) => {
+    const g = svgEl('g', { transform: `translate(0,${top + i * rowH})` }); svg.append(g);
+    const cy = rowH / 2 - 2;
+    const lab = svgEl('text', { class: 'lab', x: left - 10, y: cy, dy: '0.35em', 'text-anchor': 'end' }); lab.textContent = r.單位; g.append(lab);
+    g.append(svgEl('rect', { x: x(0), y: cy - barH / 2, height: barH, rx: 3, width: Math.max(0, x(r.執行率) - x(0)), fill: r.執行率 > 100 ? 'var(--bad)' : 'var(--s1)' }));
+    if (r.線上執行率 !== null) g.append(svgEl('circle', { cx: x(r.線上執行率), cy, r: 5, fill: 'var(--s2)', stroke: 'var(--bg)', 'stroke-width': 1.5 }));
+    const val = svgEl('text', { class: 'val', x: x(Math.max(r.執行率, r.線上執行率 ?? 0)) + 8, y: cy, dy: '0.35em' }); val.textContent = pct(r.執行率); g.append(val);
+    const hit = svgEl('rect', { x: 0, y: 0, width: W, height: rowH, fill: 'transparent' }); g.append(hit);
+    const line = (k, v) => { const d = el('div'); d.append(el('span', { class: 'k' }, k + '　'), document.createTextNode(v)); return d; };
+    const show = (ev) => {
+      const b = el('div', {}, r.單位); b.style.fontWeight = '500';
+      tip.replaceChildren(b, line('核定', fmt(r.核定)), line('主計已執行', `${fmt(r.主計)}（${pct(r.執行率)}）`), line('線上登帳', r.線上執行率 === null ? '—' : pct(r.線上執行率)));
+      tip.hidden = false;
+      const rect = box.getBoundingClientRect();
+      const mx = ev.clientX - rect.left, my = ev.clientY - rect.top;
+      tip.style.left = Math.max(0, Math.min(mx + 12, box.clientWidth - tip.offsetWidth)) + 'px';
+      tip.style.top = (my + 14) + 'px';
+    };
+    hit.addEventListener('pointerenter', show); hit.addEventListener('pointermove', show);
+    hit.addEventListener('pointerleave', () => { tip.hidden = true; });
+  });
+  const tx = x(timePct);
+  svg.append(svgEl('line', { x1: tx, x2: tx, y1: top - 6, y2: H - bottom, stroke: 'var(--ref)', 'stroke-width': 2, 'stroke-dasharray': '4 3' }));
+  const tl = svgEl('text', { x: tx, y: top - 10, 'text-anchor': 'middle' }); tl.textContent = '時間進度 ' + Math.round(timePct) + '%'; svg.append(tl);
+}
+
+function drawUnitTable() {
+  const tb = document.getElementById('unit-rows'); tb.replaceChildren();
+  for (const r of unitRows(cat)) {
+    const tr = el('tr');
+    tr.append(el('td', {}, r.單位), el('td', { class: 'n' }, fmt(r.核定)), el('td', { class: 'n' }, fmt(r.主計)),
+      el('td', { class: 'n ' + rateClass(r.執行率) }, pct(r.執行率)),
+      el('td', { class: 'n ' + (r.線上執行率 === null ? '' : rateClass(r.線上執行率)) }, r.線上執行率 === null ? '—' : pct(r.線上執行率)));
+    tb.append(tr);
+  }
+}
+
+function drawBiz() {
+  const biz = byCat('業務費');
+  const unitTotal = new Map();
+  for (const r of biz) unitTotal.set(r.單位, (unitTotal.get(r.單位) || 0) + r.核定);
+  const rows = biz.map((r, i) => ({ ...r, 序: i, 執行率: rate(r.主計, r.核定), 剩餘: r.核定 - r.主計 }))
+    .sort((a, b) => unitTotal.get(b.單位) - unitTotal.get(a.單位) || a.序 - b.序);
+  const idx = new Map(); for (const r of rows) if (!idx.has(r.單位)) idx.set(r.單位, idx.size);
+  const tb = document.getElementById('biz-rows'); tb.replaceChildren();
+  for (const r of rows) {
+    const tr = el('tr', { class: 'u' + (idx.get(r.單位) % 4) });
+    tr.append(el('td', {}, r.單位), el('td', {}, r.項次), el('td', { class: 'wt' }, r.項目),
+      el('td', { class: 'n' }, fmt(r.核定)), el('td', { class: 'n' }, fmt(r.主計)),
+      el('td', { class: 'n ' + rateClass(r.執行率) }, pct(r.執行率)),
+      el('td', { class: 'n' + (r.剩餘 < 0 ? ' bad' : '') }, fmt(r.剩餘)));
+    tb.append(tr);
+  }
+}
+
+document.querySelectorAll('.toggle button').forEach((btn) => btn.addEventListener('click', () => {
+  cat = btn.dataset.cat;
+  document.querySelectorAll('.toggle button').forEach((b) => b.setAttribute('aria-pressed', String(b === btn)));
+  drawChart(); drawUnitTable();
+}));
+let rz; window.addEventListener('resize', () => { clearTimeout(rz); rz = setTimeout(drawChart, 120); });
+drawChart(); drawUnitTable(); drawBiz();
+</script>
+</body>
+</html>
