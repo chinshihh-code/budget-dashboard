@@ -44,6 +44,7 @@ h2 { font-size: 1.2rem; font-weight: 500; margin: 0 0 6px; }
 .chart text.lab { fill: var(--fg); font-size: 14px; }
 .chart text.val { fill: var(--s1t); font-variant-numeric: tabular-nums; font-weight: 500; }
 .chart text.val, .chart text.oval { paint-order: stroke; stroke: var(--bg); stroke-width: 3px; stroke-linejoin: round; }
+.chart text.val.in { fill: #ffffff; stroke: none; }
 .chart text.oval { fill: var(--s2t); font-variant-numeric: tabular-nums; font-size: 11px; }
 .tip { position: absolute; pointer-events: none; background: var(--bg); border: 1px solid var(--line); box-shadow: 0 4px 14px rgba(0,0,0,.12); border-radius: 8px; padding: 8px 12px; font-size: .8rem; line-height: 1.6; white-space: nowrap; z-index: 2; }
 .tip .k { color: var(--muted); }
@@ -231,11 +232,16 @@ function drawChart(cat, boxId) {
     const lab = svgEl('text', { class: 'lab', x: left - 10, y: cy, dy: '0.35em', 'text-anchor': 'end' }); lab.textContent = r.單位; g.append(lab);
     g.append(svgEl('rect', { x: x(0), y: cy - barH / 2, height: barH, rx: 3, width: Math.max(0, x(r.執行率) - x(0)), fill: r.執行率 > 100 ? 'var(--bad)' : 'var(--s1)' }));
     if (r.線上執行率 !== null) g.append(svgEl('circle', { cx: x(r.線上執行率), cy, r: 5, fill: 'var(--s2)', stroke: 'var(--bg)', 'stroke-width': 1.5 }));
-    // 主計：藍字，跟在長條尾端；若黃點擋住則移到黃點右側
+    // 主計：寫在藍色長條內部尾端（白字），一定在長條範圍內；長條太短才放在長條右側
     const barEnd = x(r.執行率);
-    let vx = barEnd + 8;
-    if (r.線上執行率 !== null) { const dx = x(r.線上執行率); if (dx > barEnd - 6 && dx < barEnd + valW + 14) vx = dx + 10; }
-    const val = svgEl('text', { class: 'val', x: vx, y: cy, dy: '0.35em' }); val.textContent = pct(r.執行率); g.append(val);
+    const inside = barEnd - x(0) >= valW + 16;
+    let vx = inside ? barEnd - 8 : barEnd + 8, vy = cy;
+    if (inside && r.線上執行率 !== null) {
+      const dx = x(r.線上執行率);
+      if (dx > barEnd - valW - 16 && dx < barEnd + 6) vx = Math.min(barEnd - 8, dx - 10);
+    }
+    if (!inside && r.線上執行率 !== null) { const dx = x(r.線上執行率); if (dx > barEnd - 6 && dx < barEnd + valW + 14) vy = cy - barH / 2 - 6; }
+    const val = svgEl('text', { class: inside ? 'val in' : 'val', x: vx, y: vy, dy: '0.35em', 'text-anchor': inside ? 'end' : 'start' }); val.textContent = pct(r.執行率); g.append(val);
     // 線上：橙字，放在黃點正下方
     if (r.線上執行率 !== null) {
       const ov = svgEl('text', { class: 'oval', x: x(r.線上執行率), y: cy + barH / 2 + 12, 'text-anchor': 'middle' }); ov.textContent = '線上 ' + pct(r.線上執行率); g.append(ov);
