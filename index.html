@@ -35,9 +35,6 @@ h1 { font-family: "Noto Serif TC", "PMingLiU", serif; font-weight: 400; font-siz
 .row span:last-child { color: var(--fg); font-variant-numeric: tabular-nums; }
 h2 { font-size: 1.2rem; font-weight: 500; margin: 0 0 6px; }
 .note { color: var(--muted); font-size: .85rem; margin: 0 0 12px; }
-.toggle { display: inline-flex; border: 1px solid var(--line); border-radius: 8px; overflow: hidden; margin: 4px 0 10px; }
-.toggle button { font: inherit; font-size: .85rem; padding: 5px 14px; border: 0; background: transparent; color: var(--muted); cursor: pointer; }
-.toggle button[aria-pressed="true"] { background: var(--fg); color: var(--bg); }
 .legend { display: flex; flex-wrap: wrap; gap: 16px; font-size: .8rem; color: var(--muted); margin-bottom: 6px; }
 .legend i { display: inline-block; width: 12px; height: 12px; border-radius: 2px; vertical-align: -2px; margin-right: 4px; }
 .legend i.dot { border-radius: 50%; width: 9px; height: 9px; vertical-align: 0; }
@@ -95,19 +92,28 @@ details ul { font-size: .85rem; color: var(--muted); line-height: 1.8; padding-l
   <div class="card" data-cat="業務費"><h3>業務費</h3></div>
 </section>
 
-<section id="units">
-  <h2>各單位執行率</h2>
-  <div class="toggle" role="group" aria-label="費用別">
-    <button type="button" data-cat="業務費" aria-pressed="true">業務費</button>
-    <button type="button" data-cat="人事費" aria-pressed="false">人事費</button>
-  </div>
+<section id="units-p">
+  <h2>人事費各單位執行率</h2>
   <p class="note">長條為主計帳執行率，圓點為線上登帳執行率，直線為全年時間進度。滑過長條可看金額；點長條或表格中的執行率，可看該單位各項次的說明。</p>
   <div class="legend"><span><i style="background:var(--s1)"></i>主計帳執行率</span><span><i class="dot" style="background:var(--s2)"></i>線上登帳執行率</span><span><i class="ref"></i>時間進度</span></div>
-  <div class="chart" id="chart"></div>
+  <div class="chart" id="chart-p"></div>
   <div class="tbl-wrap" style="margin-top:14px">
     <table>
       <thead><tr><th>單位</th><th class="n">核定</th><th class="n">主計已執行</th><th class="n">主計執行率</th><th class="n">線上登帳執行率</th></tr></thead>
-      <tbody id="unit-rows"></tbody>
+      <tbody id="rows-p"></tbody>
+    </table>
+  </div>
+</section>
+
+<section id="units-b">
+  <h2>業務費各單位執行率</h2>
+  <p class="note">長條為主計帳執行率，圓點為線上登帳執行率，直線為全年時間進度。滑過長條可看金額；點長條或表格中的執行率，可看該單位各項次的說明。</p>
+  <div class="legend"><span><i style="background:var(--s1)"></i>主計帳執行率</span><span><i class="dot" style="background:var(--s2)"></i>線上登帳執行率</span><span><i class="ref"></i>時間進度</span></div>
+  <div class="chart" id="chart-b"></div>
+  <div class="tbl-wrap" style="margin-top:14px">
+    <table>
+      <thead><tr><th>單位</th><th class="n">核定</th><th class="n">主計已執行</th><th class="n">主計執行率</th><th class="n">線上登帳執行率</th></tr></thead>
+      <tbody id="rows-b"></tbody>
     </table>
   </div>
 </section>
@@ -199,12 +205,11 @@ function unitRows(cat) {
   const units = [...new Set(rows.map((r) => r.單位))];
   return units.map((u) => ({ 單位: u, ...agg(rows.filter((r) => r.單位 === u)) })).sort((a, b) => b.核定 - a.核定);
 }
-let cat = '業務費';
 const NS = 'http://www.w3.org/2000/svg';
 const svgEl = (tag, attrs = {}) => { const e = document.createElementNS(NS, tag); for (const [k, v] of Object.entries(attrs)) e.setAttribute(k, v); return e; };
 
-function drawChart() {
-  const box = document.getElementById('chart');
+function drawChart(cat, boxId) {
+  const box = document.getElementById(boxId);
   box.replaceChildren();
   const rows = unitRows(cat);
   const W = Math.max(box.clientWidth, 280), rowH = 46, top = 22, bottom = 26, H = top + rows.length * rowH + bottom, barH = 18;
@@ -271,8 +276,8 @@ function openUnit(cat, unit) {
 document.getElementById('dlg-close').addEventListener('click', () => document.getElementById('dlg').close());
 document.getElementById('dlg').addEventListener('click', (e) => { if (e.target.id === 'dlg') e.target.close(); });
 
-function drawUnitTable() {
-  const tb = document.getElementById('unit-rows'); tb.replaceChildren();
+function drawUnitTable(cat, tbId) {
+  const tb = document.getElementById(tbId); tb.replaceChildren();
   for (const r of unitRows(cat)) {
     const tr = el('tr');
     tr.append(el('td', {}, r.單位), el('td', { class: 'n' }, fmt(r.核定)), el('td', { class: 'n' }, fmt(r.主計)),
@@ -304,13 +309,9 @@ function drawBiz() {
   }
 }
 
-document.querySelectorAll('.toggle button').forEach((btn) => btn.addEventListener('click', () => {
-  cat = btn.dataset.cat;
-  document.querySelectorAll('.toggle button').forEach((b) => b.setAttribute('aria-pressed', String(b === btn)));
-  drawChart(); drawUnitTable();
-}));
-let rz; window.addEventListener('resize', () => { clearTimeout(rz); rz = setTimeout(drawChart, 120); });
-drawChart(); drawUnitTable(); drawBiz();
+const drawCharts = () => { drawChart('人事費', 'chart-p'); drawChart('業務費', 'chart-b'); };
+let rz; window.addEventListener('resize', () => { clearTimeout(rz); rz = setTimeout(drawCharts, 120); });
+drawCharts(); drawUnitTable('人事費', 'rows-p'); drawUnitTable('業務費', 'rows-b'); drawBiz();
 </script>
 </body>
 </html>
