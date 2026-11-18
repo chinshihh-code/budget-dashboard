@@ -60,6 +60,22 @@ td.wt { white-space: normal; min-width: 10em; }
 .u1 td { background: color-mix(in srgb, #22c55e 14%, transparent); }
 .u2 td { background: color-mix(in srgb, #a855f7 14%, transparent); }
 .u3 td { background: color-mix(in srgb, #f97316 14%, transparent); }
+.clk { cursor: pointer; text-decoration: underline dotted; text-underline-offset: 3px; }
+.clk:hover { background: var(--grid); }
+dialog { border: 1px solid var(--line); border-radius: 12px; padding: 0; max-width: min(760px, 94vw); width: 100%; background: var(--bg); color: var(--fg); box-shadow: 0 12px 40px rgba(0,0,0,.25); }
+dialog::backdrop { background: rgba(0,0,0,.35); }
+.dlg-head { display: flex; justify-content: space-between; align-items: center; padding: 14px 18px; border-bottom: 1px solid var(--line); position: sticky; top: 0; background: var(--bg); }
+.dlg-head h3 { margin: 0; font-size: 1.05rem; font-weight: 500; }
+.dlg-head button { font: inherit; border: 1px solid var(--line); background: transparent; color: var(--fg); border-radius: 6px; padding: 3px 10px; cursor: pointer; }
+.dlg-body { padding: 6px 18px 18px; max-height: 70vh; overflow-y: auto; }
+.it { padding: 12px 0; border-bottom: 1px solid var(--line); }
+.it:last-child { border-bottom: 0; }
+.it-t { font-weight: 500; margin-bottom: 4px; }
+.it-n { font-size: .85rem; color: var(--muted); font-variant-numeric: tabular-nums; margin-bottom: 6px; }
+.it-n b { color: var(--fg); font-weight: 500; }
+.it-n b.red { color: var(--red); }
+.it-n b.bad { color: var(--bad); }
+.it-s { font-size: .9rem; line-height: 1.7; }
 details summary { cursor: pointer; color: var(--muted); font-size: .85rem; }
 details ul { font-size: .85rem; color: var(--muted); line-height: 1.8; padding-left: 1.2em; }
 </style>
@@ -85,7 +101,7 @@ details ul { font-size: .85rem; color: var(--muted); line-height: 1.8; padding-l
     <button type="button" data-cat="業務費" aria-pressed="true">業務費</button>
     <button type="button" data-cat="人事費" aria-pressed="false">人事費</button>
   </div>
-  <p class="note">長條為主計帳執行率，圓點為線上登帳執行率，直線為全年時間進度。滑過長條可看金額。</p>
+  <p class="note">長條為主計帳執行率，圓點為線上登帳執行率，直線為全年時間進度。滑過長條可看金額；點長條或表格中的執行率，可看該單位各項次的說明。</p>
   <div class="legend"><span><i style="background:var(--s1)"></i>主計帳執行率</span><span><i class="dot" style="background:var(--s2)"></i>線上登帳執行率</span><span><i class="ref"></i>時間進度</span></div>
   <div class="chart" id="chart"></div>
   <div class="tbl-wrap" style="margin-top:14px">
@@ -107,6 +123,11 @@ details ul { font-size: .85rem; color: var(--muted); line-height: 1.8; padding-l
   </div>
 </section>
 
+<dialog id="dlg" aria-labelledby="dlg-title">
+  <div class="dlg-head"><h3 id="dlg-title"></h3><button type="button" id="dlg-close">關閉</button></div>
+  <div class="dlg-body" id="dlg-body"></div>
+</dialog>
+
 <details>
   <summary>名詞說明與資料來源</summary>
   <ul>
@@ -122,8 +143,9 @@ details ul { font-size: .85rem; color: var(--muted); line-height: 1.8; padding-l
 
 <script>
 // ===== 每次更新只要改這一段 =====
-const AS_OF = '2026-11-16';
+const AS_OF = '2026-11-17';
 const SOURCE_NOTE = '核銷會計對帳總檔（115H111-02，1116 版；11/17 更新人事費一、七及業務費二-三、二-六）的「總表」工作表。';
+const SUMMARY = {"人事費一": "勞動型兼任助理12名，115年1–12月，教務處補助之學士至碩士級兼任助理。", "人事費二": "教學助理6名，115年1–12月，教務處補助擴大輔系之學士至碩士級教學助理。", "人事費三": "教學助理22名，115年1–12月，通識中心補助之學士至碩士級教學助理。", "人事費四": "教學助理170名，115年1–12月，教學發展中心補助之學士至碩(博)士級教學助理、課業諮詢教學助理及協助MOOCs課程平台經營。", "人事費五": "通識中心專任教師鐘點費，授課鐘點費每節920至1,070元。", "人事費六": "教務處補助擴大輔系兼任教師鐘點費，115年1–12月，依公立大專校院兼任教師鐘點費支給基準表支給。", "人事費七": "專任助理13名，115年1–12月，教務處補助之專任助理。", "人事費八": "專任約聘教師2名，115年1–12月，通識中心補助之專任約聘教師。", "人事費九": "兼任教師5名，115年1–12月，課務組補助之國家語言（原住民語）兼任教師。", "人事費十": "兼任教師18名，115年1–12月，通識中心補助之兼任教師。", "人事費十一": "兼任教師2名，115年1–12月，通識中心補助之國家語言（閩南語）兼任教師。", "業務費一": "研究獎助生17名，115年1–12月，教學發展中心教師教學成長社群17組，每組1名研究獎助生。", "業務費二-一": "課務組學分學程（含微學程）補助，推動跨領域學分學程。", "業務費二-二": "通識中心通識教育業務費，含演講費、講座鐘點費、出席費、課程指導費、交通費、印刷費、場地使用費、餐費等。", "業務費二-三": "課務組推動各式創新與總整課程補助。", "業務費二-四": "教學發展中心發展教學助理課程與教學評量機制、精進培訓活動、擴充教學知能線上課程及系所教學助理培訓。", "業務費二-五": "課務組專業基礎整合業務費，含開課單位製作網頁、影音資料、輔助教學及教材上傳；依開班數、教材上傳完成度等指標分配。", "業務費二-六": "教務處推動跨域學習業務費。", "業務費二-七": "教學發展中心115年1–12月進班觀課、課業諮詢輔導、數位學習平台推廣活動臨時人力。", "業務費二-八": "課務組依國家語言課程補助辦法，經委員會審查分配，補助國家語言課程。", "業務費二-九": "課務組持續進行教室環境修繕、教學設備更新與課桌椅汰換。", "業務費二-十": "教學發展中心數位教學創新營運，含磨課師(MOOCs)、開放式課程(OCW)、大師講座、政大課程搶先看錄製、政大數位知識城優化、數位教學工作坊等。", "業務費二-十一": "教學發展中心教師資源及教師支持體系，含教學精進實驗計畫、教學實踐、傳習團隊、新進教師研習、教師教學社群、教學增能工作坊、教師資訊交流平台。", "業務費二-十二": "教學發展中心教師社群補助，補助17個社群，115年1–12月。"};
 const ITEMS = [{"項次": "人事費一", "費用別": "人事費", "單位": "教務長室", "項目": "勞動型兼任助理", "核定": 780000, "主計": 741795, "線上": null}, {"項次": "人事費二", "費用別": "人事費", "單位": "教務長室", "項目": "擴大輔系教學助理", "核定": 86959, "主計": 86959, "線上": 86959}, {"項次": "人事費三", "費用別": "人事費", "單位": "通識中心", "項目": "通識教學助理", "核定": 651280, "主計": 544208, "線上": 576728}, {"項次": "人事費四", "費用別": "人事費", "單位": "教發中心", "項目": "教發教學助理", "核定": 4154179, "主計": 3406813, "線上": 3327221}, {"項次": "人事費五", "費用別": "人事費", "單位": "通識中心", "項目": "通識專任教師鐘點費", "核定": 3152, "主計": 0, "線上": null}, {"項次": "人事費六", "費用別": "人事費", "單位": "教務長室", "項目": "擴大輔系兼任教師鐘點費", "核定": 2000000, "主計": 1793127, "線上": 1872051}, {"項次": "人事費七", "費用別": "人事費", "單位": "教務長室", "項目": "專任助理", "核定": 7250000, "主計": 5612465, "線上": null}, {"項次": "人事費八", "費用別": "人事費", "單位": "通識中心", "項目": "專任約聘教師", "核定": 2860434, "主計": 2312476, "線上": null}, {"項次": "人事費九", "費用別": "人事費", "單位": "課務組", "項目": "兼任教師鐘點費（國家語言）", "核定": 420000, "主計": 200991, "線上": 181591}, {"項次": "人事費十", "費用別": "人事費", "單位": "通識中心", "項目": "通識兼任教師鐘點費", "核定": 760887, "主計": 681938, "線上": 649418}, {"項次": "人事費十一", "費用別": "人事費", "單位": "通識中心", "項目": "兼任教師鐘點費（閩南語）", "核定": 170068, "主計": 73233, "線上": 85566}, {"項次": "業務費一", "費用別": "業務費", "單位": "教發中心", "項目": "研究獎助生學習津貼", "核定": 1030000, "主計": 893517, "線上": 689765}, {"項次": "業務費二-一", "費用別": "業務費", "單位": "課務組", "項目": "學分學程（含微學程）補助", "核定": 1500000, "主計": 450390, "線上": 543672}, {"項次": "業務費二-二", "費用別": "業務費", "單位": "通識中心", "項目": "通識教育業務費", "核定": 423080, "主計": 216823, "線上": 213645}, {"項次": "業務費二-三", "費用別": "業務費", "單位": "課務組", "項目": "創新與總整課程補助", "核定": 1110000, "主計": 716890, "線上": 551732}, {"項次": "業務費二-四", "費用別": "業務費", "單位": "教發中心", "項目": "教學助理培訓與評量", "核定": 200000, "主計": 148815, "線上": 148945}, {"項次": "業務費二-五", "費用別": "業務費", "單位": "課務組", "項目": "專業基礎整合業務費", "核定": 700000, "主計": 149354, "線上": 242565}, {"項次": "業務費二-六", "費用別": "業務費", "單位": "教務長室", "項目": "推動跨域學習", "核定": 444180, "主計": 20188, "線上": 2930}, {"項次": "業務費二-七", "費用別": "業務費", "單位": "教發中心", "項目": "臨時人力（觀課、課諮、數位推廣）", "核定": 950000, "主計": 447509, "線上": 344980}, {"項次": "業務費二-八", "費用別": "業務費", "單位": "課務組", "項目": "國家語言課程補助", "核定": 400000, "主計": 212355, "線上": 215355}, {"項次": "業務費二-九", "費用別": "業務費", "單位": "課務組", "項目": "教室修繕與設備汰換", "核定": 800000, "主計": 476770, "線上": 730853}, {"項次": "業務費二-十", "費用別": "業務費", "單位": "教發中心", "項目": "數位教學創新（MOOCs 等）", "核定": 1392740, "主計": 953565, "線上": 1361585}, {"項次": "業務費二-十一", "費用別": "業務費", "單位": "教發中心", "項目": "教師支持體系", "核定": 1040000, "主計": 568478, "線上": 950000}, {"項次": "業務費二-十二", "費用別": "業務費", "單位": "教發中心", "項目": "教師社群補助", "核定": 342000, "主計": 151519, "線上": 138127}];
 // ===============================
 
@@ -220,19 +242,46 @@ function drawChart() {
     };
     hit.addEventListener('pointerenter', show); hit.addEventListener('pointermove', show);
     hit.addEventListener('pointerleave', () => { tip.hidden = true; });
+    hit.style.cursor = 'pointer';
+    hit.addEventListener('click', () => { tip.hidden = true; openUnit(cat, r.單位); });
   });
   const tx = x(timePct);
   svg.append(svgEl('line', { x1: tx, x2: tx, y1: top - 6, y2: H - bottom, stroke: 'var(--ref)', 'stroke-width': 2, 'stroke-dasharray': '4 3' }));
   const tl = svgEl('text', { x: tx, y: top - 10, 'text-anchor': 'middle' }); tl.textContent = '時間進度 ' + Math.round(timePct) + '%'; svg.append(tl);
 }
 
+function openUnit(cat, unit) {
+  const rows = byCat(cat).filter((r) => r.單位 === unit);
+  document.getElementById('dlg-title').textContent = `${unit}｜${cat}各項次`;
+  const body = document.getElementById('dlg-body'); body.replaceChildren();
+  for (const r of rows) {
+    const rt = rate(r.主計, r.核定);
+    const it = el('div', { class: 'it' });
+    it.append(el('div', { class: 'it-t' }, `${r.項次}　${r.項目}`));
+    const n = el('div', { class: 'it-n' });
+    n.append('核定 ', el('b', {}, fmt(r.核定)), '｜主計已執行 ', el('b', {}, fmt(r.主計)), '｜主計執行率 ');
+    n.append(el('b', { class: rateClass(rt) }, pct(rt)));
+    if (r.線上 !== null) { const ro = rate(r.線上, r.核定); n.append('｜線上登帳 ', el('b', { class: rateClass(ro) }, pct(ro))); }
+    it.append(n, el('div', { class: 'it-s' }, SUMMARY[r.項次] || ''));
+    body.append(it);
+  }
+  const d = document.getElementById('dlg');
+  if (d.showModal) d.showModal(); else d.setAttribute('open', '');
+}
+document.getElementById('dlg-close').addEventListener('click', () => document.getElementById('dlg').close());
+document.getElementById('dlg').addEventListener('click', (e) => { if (e.target.id === 'dlg') e.target.close(); });
+
 function drawUnitTable() {
   const tb = document.getElementById('unit-rows'); tb.replaceChildren();
   for (const r of unitRows(cat)) {
     const tr = el('tr');
     tr.append(el('td', {}, r.單位), el('td', { class: 'n' }, fmt(r.核定)), el('td', { class: 'n' }, fmt(r.主計)),
-      el('td', { class: 'n ' + rateClass(r.執行率) }, pct(r.執行率)),
-      el('td', { class: 'n ' + (r.線上執行率 === null ? '' : rateClass(r.線上執行率)) }, r.線上執行率 === null ? '—' : pct(r.線上執行率)));
+      el('td', { class: 'n clk ' + rateClass(r.執行率), tabindex: '0', role: 'button', 'aria-label': `${r.單位}${cat}各項次說明` }, pct(r.執行率)),
+      el('td', { class: 'n ' + (r.線上執行率 === null ? '' : 'clk ' + rateClass(r.線上執行率)), tabindex: r.線上執行率 === null ? '-1' : '0', role: 'button' }, r.線上執行率 === null ? '—' : pct(r.線上執行率)));
+    for (const td of tr.querySelectorAll('.clk')) {
+      td.addEventListener('click', () => openUnit(cat, r.單位));
+      td.addEventListener('keydown', (e) => { if (e.key === 'Enter' || e.key === ' ') { e.preventDefault(); openUnit(cat, r.單位); } });
+    }
     tb.append(tr);
   }
 }
