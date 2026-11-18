@@ -57,14 +57,12 @@ td.wt { white-space: normal; min-width: 10em; }
 .u1 td { background: color-mix(in srgb, #22c55e 14%, transparent); }
 .u2 td { background: color-mix(in srgb, #a855f7 14%, transparent); }
 .u3 td { background: color-mix(in srgb, #f97316 14%, transparent); }
-.clk { cursor: pointer; text-decoration: underline dotted; text-underline-offset: 3px; }
-.clk:hover { background: var(--grid); }
-dialog { border: 1px solid var(--line); border-radius: 12px; padding: 0; max-width: min(760px, 94vw); width: 100%; background: var(--bg); color: var(--fg); box-shadow: 0 12px 40px rgba(0,0,0,.25); }
-dialog::backdrop { background: rgba(0,0,0,.35); }
-.dlg-head { display: flex; justify-content: space-between; align-items: center; padding: 14px 18px; border-bottom: 1px solid var(--line); position: sticky; top: 0; background: var(--bg); }
-.dlg-head h3 { margin: 0; font-size: 1.05rem; font-weight: 500; }
-.dlg-head button { font: inherit; border: 1px solid var(--line); background: transparent; color: var(--fg); border-radius: 6px; padding: 3px 10px; cursor: pointer; }
-.dlg-body { padding: 6px 18px 18px; max-height: 70vh; overflow-y: auto; }
+.urow { cursor: pointer; }
+.urow:hover td { background: var(--grid); }
+.urow td:first-child::before { content: '▸'; display: inline-block; width: 1.1em; color: var(--muted); transition: transform .15s; }
+.urow.open td:first-child::before { transform: rotate(90deg); }
+.urow.open td { background: var(--panel); font-weight: 500; }
+tr.drow > td { background: var(--panel); padding: 2px 18px 10px 30px; white-space: normal; }
 .it { padding: 12px 0; border-bottom: 1px solid var(--line); }
 .it:last-child { border-bottom: 0; }
 .it-t { font-weight: 500; margin-bottom: 4px; }
@@ -94,7 +92,7 @@ details ul { font-size: .85rem; color: var(--muted); line-height: 1.8; padding-l
 
 <section id="units-p">
   <h2>人事費各單位執行率</h2>
-  <p class="note">長條為主計帳執行率，圓點為線上登帳執行率，直線為全年時間進度。滑過長條可看金額；點長條或表格中的執行率，可看該單位各項次的說明。</p>
+  <p class="note">長條為主計帳執行率，圓點為線上登帳執行率，直線為全年時間進度。滑過長條可看金額；點表格中的單位列（或點長條）可展開該單位各項次的說明，再點一次收起。</p>
   <div class="legend"><span><i style="background:var(--s1)"></i>主計帳執行率</span><span><i class="dot" style="background:var(--s2)"></i>線上登帳執行率</span><span><i class="ref"></i>時間進度</span></div>
   <div class="chart" id="chart-p"></div>
   <div class="tbl-wrap" style="margin-top:14px">
@@ -107,7 +105,7 @@ details ul { font-size: .85rem; color: var(--muted); line-height: 1.8; padding-l
 
 <section id="units-b">
   <h2>業務費各單位執行率</h2>
-  <p class="note">長條為主計帳執行率，圓點為線上登帳執行率，直線為全年時間進度。滑過長條可看金額；點長條或表格中的執行率，可看該單位各項次的說明。</p>
+  <p class="note">長條為主計帳執行率，圓點為線上登帳執行率，直線為全年時間進度。滑過長條可看金額；點表格中的單位列（或點長條）可展開該單位各項次的說明，再點一次收起。</p>
   <div class="legend"><span><i style="background:var(--s1)"></i>主計帳執行率</span><span><i class="dot" style="background:var(--s2)"></i>線上登帳執行率</span><span><i class="ref"></i>時間進度</span></div>
   <div class="chart" id="chart-b"></div>
   <div class="tbl-wrap" style="margin-top:14px">
@@ -128,11 +126,6 @@ details ul { font-size: .85rem; color: var(--muted); line-height: 1.8; padding-l
     </table>
   </div>
 </section>
-
-<dialog id="dlg" aria-labelledby="dlg-title">
-  <div class="dlg-head"><h3 id="dlg-title"></h3><button type="button" id="dlg-close">關閉</button></div>
-  <div class="dlg-body" id="dlg-body"></div>
-</dialog>
 
 <details>
   <summary>名詞說明與資料來源</summary>
@@ -255,11 +248,9 @@ function drawChart(cat, boxId) {
   const tl = svgEl('text', { x: tx, y: top - 10, 'text-anchor': 'middle' }); tl.textContent = '時間進度 ' + Math.round(timePct) + '%'; svg.append(tl);
 }
 
-function openUnit(cat, unit) {
-  const rows = byCat(cat).filter((r) => r.單位 === unit);
-  document.getElementById('dlg-title').textContent = `${unit}｜${cat}各項次`;
-  const body = document.getElementById('dlg-body'); body.replaceChildren();
-  for (const r of rows) {
+function unitDetail(cat, unit) {
+  const box = el('div');
+  for (const r of byCat(cat).filter((x) => x.單位 === unit)) {
     const rt = rate(r.主計, r.核定);
     const it = el('div', { class: 'it' });
     it.append(el('div', { class: 'it-t' }, `${r.項次}　${r.項目}`));
@@ -268,25 +259,34 @@ function openUnit(cat, unit) {
     n.append(el('b', { class: rateClass(rt) }, pct(rt)));
     if (r.線上 !== null) { const ro = rate(r.線上, r.核定); n.append('｜線上登帳 ', el('b', { class: rateClass(ro) }, pct(ro))); }
     it.append(n, el('div', { class: 'it-s' }, SUMMARY[r.項次] || ''));
-    body.append(it);
+    box.append(it);
   }
-  const d = document.getElementById('dlg');
-  if (d.showModal) d.showModal(); else d.setAttribute('open', '');
+  return box;
 }
-document.getElementById('dlg-close').addEventListener('click', () => document.getElementById('dlg').close());
-document.getElementById('dlg').addEventListener('click', (e) => { if (e.target.id === 'dlg') e.target.close(); });
+function toggleUnit(tr, cat, unit, forceOpen) {
+  const open = tr.classList.contains('open');
+  if (open && !forceOpen) { tr.classList.remove('open'); tr.setAttribute('aria-expanded', 'false'); tr.nextElementSibling?.remove(); return; }
+  if (open) return;
+  tr.classList.add('open'); tr.setAttribute('aria-expanded', 'true');
+  const d = el('tr', { class: 'drow' }); const td = el('td', { colspan: '5' });
+  td.append(unitDetail(cat, unit)); d.append(td); tr.after(d);
+}
+function openUnit(cat, unit) {
+  const tr = [...document.querySelectorAll('tr.urow')].find((x) => x.dataset.cat === cat && x.dataset.unit === unit);
+  if (!tr) return;
+  toggleUnit(tr, cat, unit, true);
+  tr.scrollIntoView({ behavior: 'smooth', block: 'start' });
+}
 
 function drawUnitTable(cat, tbId) {
   const tb = document.getElementById(tbId); tb.replaceChildren();
   for (const r of unitRows(cat)) {
-    const tr = el('tr');
+    const tr = el('tr', { class: 'urow', tabindex: '0', role: 'button', 'aria-expanded': 'false', 'data-cat': cat, 'data-unit': r.單位 });
     tr.append(el('td', {}, r.單位), el('td', { class: 'n' }, fmt(r.核定)), el('td', { class: 'n' }, fmt(r.主計)),
-      el('td', { class: 'n clk ' + rateClass(r.執行率), tabindex: '0', role: 'button', 'aria-label': `${r.單位}${cat}各項次說明` }, pct(r.執行率)),
-      el('td', { class: 'n ' + (r.線上執行率 === null ? '' : 'clk ' + rateClass(r.線上執行率)), tabindex: r.線上執行率 === null ? '-1' : '0', role: 'button' }, r.線上執行率 === null ? '—' : pct(r.線上執行率)));
-    for (const td of tr.querySelectorAll('.clk')) {
-      td.addEventListener('click', () => openUnit(cat, r.單位));
-      td.addEventListener('keydown', (e) => { if (e.key === 'Enter' || e.key === ' ') { e.preventDefault(); openUnit(cat, r.單位); } });
-    }
+      el('td', { class: 'n ' + rateClass(r.執行率) }, pct(r.執行率)),
+      el('td', { class: 'n ' + (r.線上執行率 === null ? '' : rateClass(r.線上執行率)) }, r.線上執行率 === null ? '—' : pct(r.線上執行率)));
+    tr.addEventListener('click', () => toggleUnit(tr, cat, r.單位));
+    tr.addEventListener('keydown', (e) => { if (e.key === 'Enter' || e.key === ' ') { e.preventDefault(); toggleUnit(tr, cat, r.單位); } });
     tb.append(tr);
   }
 }
