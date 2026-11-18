@@ -121,10 +121,10 @@ details ul { font-size: .85rem; color: var(--muted); line-height: 1.8; padding-l
 
 <section id="biz">
   <h2>業務費各項次執行率</h2>
-  <p class="note">全部業務費項次，依單位排列。剩餘為負值表示超出核定金額。</p>
+  <p class="note">全部業務費項次，依單位排列。經費剩餘＝核定－主計已執行，負值表示超出核定金額。</p>
   <div class="tbl-wrap">
     <table>
-      <thead><tr><th>單位</th><th>項次</th><th>項目</th><th class="n">核定</th><th class="n">主計已執行</th><th class="n">執行率</th><th class="n">剩餘</th></tr></thead>
+      <thead><tr><th>單位</th><th>項次</th><th>項目</th><th class="n">核定</th><th class="n">主計執行率</th><th class="n">線上登帳執行率</th><th class="n">經費剩餘</th></tr></thead>
       <tbody id="biz-rows"></tbody>
     </table>
   </div>
@@ -320,8 +320,9 @@ function drawBiz() {
   for (const r of rows) {
     const tr = el('tr', { class: 'u' + (idx.get(r.單位) % 4) });
     tr.append(el('td', {}, r.單位), el('td', {}, r.項次), el('td', { class: 'wt' }, r.項目),
-      el('td', { class: 'n' }, fmt(r.核定)), el('td', { class: 'n' }, fmt(r.主計)),
+      el('td', { class: 'n' }, fmt(r.核定)),
       el('td', { class: 'n ' + rateClass(r.執行率) }, pct(r.執行率)),
+      (() => { if (r.線上 === null) return el('td', { class: 'n' }, '—'); const ro = rate(r.線上, r.核定); return el('td', { class: 'n ' + rateClass(ro) }, pct(ro)); })(),
       el('td', { class: 'n' + (r.剩餘 < 0 ? ' bad' : '') }, fmt(r.剩餘)));
     tb.append(tr);
   }
