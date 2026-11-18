@@ -95,12 +95,12 @@ details ul { font-size: .85rem; color: var(--muted); line-height: 1.8; padding-l
 
 <section id="units-p">
   <h2>人事費各單位執行率</h2>
-  <p class="note">長條為主計帳執行率，圓點為線上登帳執行率，直線為全年時間進度。滑過長條可看金額；點表格中的單位列（或點長條）可展開該單位各項次的說明，再點一次收起。</p>
-  <div class="legend"><span><i style="background:var(--s1)"></i>主計帳執行率</span><span><i class="dot" style="background:var(--s2)"></i>線上登帳執行率</span><span><i class="ref"></i>時間進度</span></div>
+  <p class="note">長條為主計帳執行率，直線為全年時間進度。（人事費部分項次沒有線上帳，僅呈現主計執行率）滑過長條可看金額；點表格中的單位列（或點長條）可展開該單位各項次的說明，再點一次收起。</p>
+  <div class="legend"><span><i style="background:var(--s1)"></i>主計帳執行率</span><span><i class="ref"></i>時間進度</span></div>
   <div class="chart" id="chart-p"></div>
   <div class="tbl-wrap" style="margin-top:14px">
     <table>
-      <thead><tr><th>單位</th><th class="n">核定</th><th class="n">主計已執行</th><th class="n">主計執行率</th><th class="n">線上登帳執行率</th></tr></thead>
+      <thead><tr><th>單位</th><th class="n">核定</th><th class="n">主計已執行</th><th class="n">主計執行率</th></tr></thead>
       <tbody id="rows-p"></tbody>
     </table>
   </div>
@@ -135,7 +135,7 @@ details ul { font-size: .85rem; color: var(--muted); line-height: 1.8; padding-l
   <ul>
     <li>執行率＝已執行金額 ÷ 學校核定金額。表格中執行率低於 60% 以紅字標示。</li>
     <li>主計帳執行率：依主計室傳票（主計帳）認列的已執行金額，為正式執行率。</li>
-    <li>線上登帳執行率：各單位在線上登帳表自行登記的金額。人事費一、五、七、八沒有線上帳，所以不列入線上執行率的計算。</li>
+    <li>線上登帳執行率：各單位在線上登帳表自行登記的金額，僅呈現於業務費。人事費部分項次沒有線上帳，人事費僅呈現主計執行率。</li>
     <li>時間進度：資料截止日在全年中的比例，用來對照執行進度是否落後。</li>
     <li>資料來源：<span id="srcnote"></span></li>
   </ul>
@@ -206,16 +206,17 @@ const svgEl = (tag, attrs = {}) => { const e = document.createElementNS(NS, tag)
 
 function drawChart(cat, boxId) {
   const box = document.getElementById(boxId);
+  const showOnline = cat !== '人事費';
   box.replaceChildren();
   const rows = unitRows(cat);
   const W = Math.max(box.clientWidth, 280), rowH = 54, top = 22, bottom = 26, H = top + rows.length * rowH + bottom, barH = 18;
-  const svg = svgEl('svg', { width: '100%', height: H, viewBox: `0 0 ${W} ${H}`, role: 'img', 'aria-label': `各單位${cat}主計帳與線上登帳執行率長條圖，含全年時間進度參考線` });
+  const svg = svgEl('svg', { width: '100%', height: H, viewBox: `0 0 ${W} ${H}`, role: 'img', 'aria-label': `各單位${cat}${showOnline ? '主計帳與線上登帳' : '主計帳'}執行率長條圖，含全年時間進度參考線` });
   box.append(svg);
   const probe = svgEl('text', { class: 'lab' }); svg.append(probe);
   let labW = 0; for (const r of rows) { probe.textContent = r.單位; labW = Math.max(labW, probe.getComputedTextLength()); }
   probe.setAttribute('class', 'val'); probe.textContent = '100.0%'; const valW = probe.getComputedTextLength() || 44; probe.remove();
   const left = labW + 14, right = valW + 14;
-  const maxV = Math.max(100, ...rows.map((r) => Math.max(r.執行率, r.線上執行率 ?? 0)));
+  const maxV = Math.max(100, ...rows.map((r) => Math.max(r.執行率, showOnline ? (r.線上執行率 ?? 0) : 0)));
   const x = (v) => left + (W - right - left) * v / maxV;
   const ticks = W < 420 ? [0, 50, 100] : [0, 25, 50, 75, 100];
   for (const t of ticks) {
@@ -231,26 +232,27 @@ function drawChart(cat, boxId) {
     const cy = rowH / 2 - 2;
     const lab = svgEl('text', { class: 'lab', x: left - 10, y: cy, dy: '0.35em', 'text-anchor': 'end' }); lab.textContent = r.單位; g.append(lab);
     g.append(svgEl('rect', { x: x(0), y: cy - barH / 2, height: barH, rx: 3, width: Math.max(0, x(r.執行率) - x(0)), fill: r.執行率 > 100 ? 'var(--bad)' : 'var(--s1)' }));
-    if (r.線上執行率 !== null) g.append(svgEl('circle', { cx: x(r.線上執行率), cy, r: 5, fill: 'var(--s2)', stroke: 'var(--bg)', 'stroke-width': 1.5 }));
+    if (showOnline && r.線上執行率 !== null) g.append(svgEl('circle', { cx: x(r.線上執行率), cy, r: 5, fill: 'var(--s2)', stroke: 'var(--bg)', 'stroke-width': 1.5 }));
     // 主計：寫在藍色長條內部尾端（白字），一定在長條範圍內；長條太短才放在長條右側
     const barEnd = x(r.執行率);
     const inside = barEnd - x(0) >= valW + 16;
     let vx = inside ? barEnd - 8 : barEnd + 8, vy = cy;
-    if (inside && r.線上執行率 !== null) {
+    if (showOnline && inside && r.線上執行率 !== null) {
       const dx = x(r.線上執行率);
       if (dx > barEnd - valW - 16 && dx < barEnd + 6) vx = Math.min(barEnd - 8, dx - 10);
     }
-    if (!inside && r.線上執行率 !== null) { const dx = x(r.線上執行率); if (dx > barEnd - 6 && dx < barEnd + valW + 14) vy = cy - barH / 2 - 6; }
+    if (showOnline && !inside && r.線上執行率 !== null) { const dx = x(r.線上執行率); if (dx > barEnd - 6 && dx < barEnd + valW + 14) vy = cy - barH / 2 - 6; }
     const val = svgEl('text', { class: inside ? 'val in' : 'val', x: vx, y: vy, dy: '0.35em', 'text-anchor': inside ? 'end' : 'start' }); val.textContent = pct(r.執行率); g.append(val);
     // 線上：橙字，放在黃點正下方
-    if (r.線上執行率 !== null) {
+    if (showOnline && r.線上執行率 !== null) {
       const ov = svgEl('text', { class: 'oval', x: x(r.線上執行率), y: cy + barH / 2 + 12, 'text-anchor': 'middle' }); ov.textContent = '線上 ' + pct(r.線上執行率); g.append(ov);
     }
     const hit = svgEl('rect', { x: 0, y: 0, width: W, height: rowH, fill: 'transparent' }); g.append(hit);
     const line = (k, v) => { const d = el('div'); d.append(el('span', { class: 'k' }, k + '　'), document.createTextNode(v)); return d; };
     const show = (ev) => {
       const b = el('div', {}, r.單位); b.style.fontWeight = '500';
-      tip.replaceChildren(b, line('核定', fmt(r.核定)), line('主計已執行', `${fmt(r.主計)}（${pct(r.執行率)}）`), line('線上登帳', r.線上執行率 === null ? '—' : pct(r.線上執行率)));
+      tip.replaceChildren(b, line('核定', fmt(r.核定)), line('主計已執行', `${fmt(r.主計)}（${pct(r.執行率)}）`));
+      if (showOnline) tip.append(line('線上登帳', r.線上執行率 === null ? '—' : pct(r.線上執行率)));
       tip.hidden = false;
       const rect = box.getBoundingClientRect();
       const mx = ev.clientX - rect.left, my = ev.clientY - rect.top;
@@ -273,7 +275,7 @@ function unitDetail(cat, unit) {
     const n = el('div', { class: 'it-n' });
     n.append('核定 ', el('b', {}, fmt(r.核定)), '｜主計已執行 ', el('b', {}, fmt(r.主計)), '｜主計執行率 ');
     n.append(el('b', { class: rateClass(rt) }, pct(rt)));
-    if (r.線上 !== null) { const ro = rate(r.線上, r.核定); n.append('｜線上登帳 ', el('b', { class: rateClass(ro) }, pct(ro))); }
+    if (cat !== '人事費' && r.線上 !== null) { const ro = rate(r.線上, r.核定); n.append('｜線上登帳 ', el('b', { class: rateClass(ro) }, pct(ro))); }
     it.append(n, el('div', { class: 'it-s' }, SUMMARY[r.項次] || ''));
     box.append(it);
   }
@@ -284,7 +286,7 @@ function toggleUnit(tr, cat, unit, forceOpen) {
   if (open && !forceOpen) { tr.classList.remove('open'); tr.setAttribute('aria-expanded', 'false'); tr.nextElementSibling?.remove(); return; }
   if (open) return;
   tr.classList.add('open'); tr.setAttribute('aria-expanded', 'true');
-  const d = el('tr', { class: 'drow' }); const td = el('td', { colspan: '5' });
+  const d = el('tr', { class: 'drow' }); const td = el('td', { colspan: cat === '人事費' ? '4' : '5' });
   td.append(unitDetail(cat, unit)); d.append(td); tr.after(d);
 }
 function openUnit(cat, unit) {
@@ -299,8 +301,8 @@ function drawUnitTable(cat, tbId) {
   for (const r of unitRows(cat)) {
     const tr = el('tr', { class: 'urow', tabindex: '0', role: 'button', 'aria-expanded': 'false', 'data-cat': cat, 'data-unit': r.單位 });
     tr.append(el('td', {}, r.單位), el('td', { class: 'n' }, fmt(r.核定)), el('td', { class: 'n' }, fmt(r.主計)),
-      el('td', { class: 'n ' + rateClass(r.執行率) }, pct(r.執行率)),
-      el('td', { class: 'n ' + (r.線上執行率 === null ? '' : rateClass(r.線上執行率)) }, r.線上執行率 === null ? '—' : pct(r.線上執行率)));
+      el('td', { class: 'n ' + rateClass(r.執行率) }, pct(r.執行率)));
+    if (cat !== '人事費') tr.append(el('td', { class: 'n ' + (r.線上執行率 === null ? '' : rateClass(r.線上執行率)) }, r.線上執行率 === null ? '—' : pct(r.線上執行率)));
     tr.addEventListener('click', () => toggleUnit(tr, cat, r.單位));
     tr.addEventListener('keydown', (e) => { if (e.key === 'Enter' || e.key === ' ') { e.preventDefault(); toggleUnit(tr, cat, r.單位); } });
     tb.append(tr);
